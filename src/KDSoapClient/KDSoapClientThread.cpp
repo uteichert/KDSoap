@@ -100,13 +100,7 @@ void KDSoapThreadTask::process(QNetworkAccessManager &accessManager)
 
     accessManager.setProxy(m_data->m_iface->d->accessManager()->proxy());
 
-    QBuffer *buffer = m_data->m_iface->d->prepareRequestBuffer(m_data->m_method, m_data->m_message, m_data->m_headers);
-    QNetworkRequest request = m_data->m_iface->d->prepareRequest(m_data->m_method, m_data->m_action);
-    QNetworkReply *reply = accessManager.post(request, buffer);
-    m_data->m_iface->d->setupReply(reply);
-    KDSoapPendingCall pendingCall(reply, buffer);
-    pendingCall.d->soapVersion = m_data->m_iface->d->m_version;
-
+    KDSoapPendingCall pendingCall = m_data->m_iface->asyncCall(m_data->m_method, m_data->m_message, m_data->m_action, m_data->m_headers);
     KDSoapPendingCallWatcher *watcher = new KDSoapPendingCallWatcher(pendingCall, this);
     connect(watcher, SIGNAL(finished(KDSoapPendingCallWatcher*)),
             this, SLOT(slotFinished(KDSoapPendingCallWatcher*)));
