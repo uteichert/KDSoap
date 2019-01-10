@@ -54,6 +54,7 @@ namespace KDSoap {
  * For historical reasons, KDSoapClientInterface uses its own version enum.
  */
 enum SoapVersion {
+    SOAP_NONE = 0,
     /** Use format version 1.1 of the SOAP specification */
     SOAP1_1 = 1,
     /** Use format version 1.2 of the SOAP specification */

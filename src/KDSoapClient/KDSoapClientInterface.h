@@ -68,6 +68,8 @@ public:
      * \see setSoapVersion()
      */
     enum SoapVersion {
+        /** Use no soap envelope nor body */
+        SOAP_NONE = 0,
         /** Use format version 1.1 of the SOAP specification */
         SOAP1_1 = 1,
         /** Use format version 1.2 of the SOAP specification */
@@ -137,7 +139,8 @@ public:
      */
     KDSoapPendingCall asyncCall(const QString &method, const KDSoapMessage &message,
                                 const QString &soapAction = QString(),
-                                const KDSoapHeaders &headers = KDSoapHeaders());
+                                const KDSoapHeaders &headers = KDSoapHeaders(),
+                                bool doGet = false);
 
     /**
      * Calls the method \p method on this interface and passes the parameters specified in \p message

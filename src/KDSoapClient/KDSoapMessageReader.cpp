@@ -241,7 +241,16 @@ KDSoapMessageReader::XmlError KDSoapMessageReader::xmlToMessage(const QByteArray
                 reader.raiseError(QObject::tr("Invalid SOAP Message, empty Envelope"));
             }
         } else {
-            reader.raiseError(QObject::tr("Invalid SOAP Message, Envelope expected"));
+            const QXmlStreamNamespaceDeclarations envNsDecls;
+            //qWarning() << "Bypassing SOAP envelope and header!";
+            *pMsg = parseElement(reader, envNsDecls);
+            if (pMessageNamespace) {
+                *pMessageNamespace = pMsg->namespaceUri();
+            }
+            if (pMsg->name() == QLatin1String("Fault")) {
+                pMsg->setFault(true);
+                reader.raiseError(QObject::tr("Invalid SOAP Message, Envelope expected"));
+            }
         }
     }
     if (reader.hasError()) {

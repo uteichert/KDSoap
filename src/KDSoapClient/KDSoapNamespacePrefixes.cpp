@@ -36,8 +36,10 @@ void KDSoapNamespacePrefixes::writeStandardNamespaces(QXmlStreamWriter &writer,
         writeNamespace(writer, KDSoapNamespaceManager::soapEncoding200305(), QLatin1String("soap-enc"));
     }
 
-    writeNamespace(writer, KDSoapNamespaceManager::xmlSchema2001(), QLatin1String("xsd"));
-    writeNamespace(writer, KDSoapNamespaceManager::xmlSchemaInstance2001(), QLatin1String("xsi"));
+    if (version != KDSoapClientInterface::SOAP_NONE) {
+        writeNamespace(writer, KDSoapNamespaceManager::xmlSchema2001(), QLatin1String("xsd"));
+        writeNamespace(writer, KDSoapNamespaceManager::xmlSchemaInstance2001(), QLatin1String("xsi"));
+    }
 
     if (messageAddressingEnabled) {
         writeNamespace(writer, KDSoapNamespaceManager::soapMessageAddressing(), QLatin1String("wsa"));

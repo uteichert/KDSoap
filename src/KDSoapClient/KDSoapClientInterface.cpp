@@ -112,7 +112,7 @@ QNetworkRequest KDSoapClientInterfacePrivate::prepareRequest(const QString &meth
     //qDebug() << "soapAction=" << soapAction;
 
     QString soapHeader;
-    if (m_version == KDSoap::SOAP1_1) {
+    if (m_version == KDSoap::SOAP1_1 || m_version == KDSoap::SOAP_NONE) {
         soapHeader += QString::fromLatin1("text/xml;charset=utf-8");
         request.setRawHeader("SoapAction", '\"' + soapAction.toUtf8() + '\"');
     } else if (m_version == KDSoap::SOAP1_2) {
@@ -154,12 +154,16 @@ QBuffer *KDSoapClientInterfacePrivate::prepareRequestBuffer(const QString &metho
     return buffer;
 }
 
-KDSoapPendingCall KDSoapClientInterface::asyncCall(const QString &method, const KDSoapMessage &message, const QString &soapAction, const KDSoapHeaders &headers)
+KDSoapPendingCall KDSoapClientInterface::asyncCall(const QString &method, const KDSoapMessage &message, const QString &soapAction, const KDSoapHeaders &headers, bool doGet)
 {
     QBuffer *buffer = d->prepareRequestBuffer(method, message, headers);
     QNetworkRequest request = d->prepareRequest(method, soapAction);
     //qDebug() << "post()";
-    QNetworkReply *reply = d->accessManager()->post(request, buffer);
+    QNetworkReply *reply;
+    if (doGet)
+        reply = d->accessManager()->get(request);
+    else
+        reply = d->accessManager()->post(request, buffer);
     d->setupReply(reply);
     KDSoapPendingCall call(reply, buffer);
     call.d->soapVersion = d->m_version;
@@ -172,7 +176,10 @@ KDSoapMessage KDSoapClientInterface::call(const QString &method, const KDSoapMes
     // Problem is: I don't want a nested event loop here. Too dangerous for GUI programs.
     // I wanted a socket->waitFor... but we don't have access to the actual socket in QNetworkAccess.
     // So the only option that remains is a thread and acquiring a semaphore...
-    KDSoapThreadTaskData *task = new KDSoapThreadTaskData(this, method, message, soapAction, headers);
+    bool doGet = false;
+    if (soapVersion() == SOAP_NONE && message.isNil())
+        doGet = true;
+    KDSoapThreadTaskData *task = new KDSoapThreadTaskData(this, method, message, soapAction, headers, doGet);
     task->m_authentication = d->m_authentication;
     d->m_thread.enqueue(task);
     if (!d->m_thread.isRunning()) {

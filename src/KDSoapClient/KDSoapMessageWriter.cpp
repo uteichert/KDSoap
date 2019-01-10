@@ -64,7 +64,8 @@ QByteArray KDSoapMessageWriter::messageToXml(const KDSoapMessage &message, const
         soapEncoding = KDSoapNamespaceManager::soapEncoding200305();
     }
 
-    writer.writeStartElement(soapEnvelope, QLatin1String("Envelope"));
+    if (m_version != KDSoapClientInterface::SOAP_NONE)
+        writer.writeStartElement(soapEnvelope, QLatin1String("Envelope"));
 
     // This has been removed, see http://msdn.microsoft.com/en-us/library/ms995710.aspx for details
     //writer.writeAttribute(soapEnvelope, QLatin1String("encodingStyle"), soapEncoding);
@@ -99,7 +100,8 @@ QByteArray KDSoapMessageWriter::messageToXml(const KDSoapMessage &message, const
         namespacePrefixes.insert(messageNamespace, QString::fromLatin1("n1"));
     }
 
-    writer.writeStartElement(soapEnvelope, QLatin1String("Body"));
+    if (m_version != KDSoapClientInterface::SOAP_NONE)
+        writer.writeStartElement(soapEnvelope, QLatin1String("Body"));
 
     const QString elementName = !method.isEmpty() ? method : message.name();
     if (elementName.isEmpty()) {
@@ -122,8 +124,11 @@ QByteArray KDSoapMessageWriter::messageToXml(const KDSoapMessage &message, const
         message.writeElementContents(namespacePrefixes, writer, message.use(), messageNamespace);
         writer.writeEndElement();
     }
-    writer.writeEndElement(); // Body
-    writer.writeEndElement(); // Envelope
+    if (m_version != KDSoapClientInterface::SOAP_NONE)
+    {
+        writer.writeEndElement(); // Body
+        writer.writeEndElement(); // Envelope
+    }
     writer.writeEndDocument();
 
     if (qgetenv("KDSOAP_DEBUG").toInt()) {
