@@ -24,6 +24,8 @@
 #include "KDSoapAuthentication.h"
 #include <QNetworkReply>
 #include <QDebug>
+#include <QDateTime>
+#include <QCryptographicHash>
 #include <QAuthenticator>
 #include "KDSoapNamespacePrefixes_p.h"
 #include "KDSoapNamespaceManager.h"
@@ -31,9 +33,11 @@
 class KDSoapAuthentication::Private
 {
 public:
+    Private() : useWSUsernameToken(false) {}
+
     QString user;
     QString password;
-    bool useWSUsernameToken = false;
+    bool useWSUsernameToken;
     QDateTime overrideWSUsernameCreatedTime;
     QByteArray overrideWSUsernameNonce;
 };
@@ -162,7 +166,7 @@ void KDSoapAuthentication::writeWSUsernameTokenHeader(KDSoapNamespacePrefixes &n
     writer.writeStartElement(securityExtentionNS, QLatin1String("UsernameToken"));
 
     writer.writeStartElement(securityExtentionNS, QLatin1String("Nonce"));
-    writer.writeCharacters(QString::fromLatin1(nonce.toBase64()));
+    writer.writeCharacters(QString::fromLatin1(nonce.toBase64().constData()));
     writer.writeEndElement();
 
     writer.writeStartElement(securityUtilityNS, QLatin1String("Created"));
@@ -171,7 +175,7 @@ void KDSoapAuthentication::writeWSUsernameTokenHeader(KDSoapNamespacePrefixes &n
 
     writer.writeStartElement(securityExtentionNS, QLatin1String("Password"));
     writer.writeAttribute(QLatin1String("Type"), QLatin1String("http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest"));
-    writer.writeCharacters(QString::fromLatin1(passwordHash.toBase64()));
+    writer.writeCharacters(QString::fromLatin1(passwordHash.toBase64().constData()));
     writer.writeEndElement();
 
     writer.writeStartElement(securityExtentionNS, QLatin1String("Username"));
